@@ -9,7 +9,7 @@ namespace NetworkFramework {
         readonly Socket _socket;
         readonly TSQueue<Msg> _messagesIn;
         readonly TSQueue<Msg> _messagesOut;
-        readonly Msg _tempMsgIn = new Msg(-1);
+        readonly Msg _tempMsgIn = -1;
 
         int _id = -1;
         long _secretQuestion;

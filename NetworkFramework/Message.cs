@@ -4,15 +4,14 @@ namespace NetworkFramework {
 
     public class Msg {
         // header
-        public int Id;
+        public int Id = -1;
         public int Size;
         //
         public int HeaderSize => 2 * 4;
         public byte[] Body;
         public Connection Remote;
 
-        public Msg(int id) {
-            Id = id;
+        public Msg() {
             Body = new byte[0];
         }
 
@@ -29,7 +28,7 @@ namespace NetworkFramework {
         }
 
         public Msg Clone() {
-            var res = new Msg(Id);
+            Msg res = Id;
             if (Body.Length > 0) {
                 Array.Resize(ref res.Body, Body.Length);
                 Array.Copy(Body, res.Body, Body.Length);
@@ -73,5 +72,7 @@ namespace NetworkFramework {
             Size = Body.Length;
             return data;
         }
+
+        public static implicit operator Msg(int id) => new Msg() { Id = id };
     }
 }
