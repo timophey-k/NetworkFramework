@@ -43,19 +43,22 @@ namespace NetworkFramework {
             Body = new byte[0];
         }
 
-        public void PushBytes(byte[] data) => Push(data.Length, data);
         public void PushInt(int val) => Push(sizeof(int), Bytes.Get(val));
         public void PushFloat(float val) => Push(sizeof(float), Bytes.Get(val));
         public void PushStr(string str) {
             byte[] data = Bytes.Get(str);
             PushBytes(data);
+        }
+        public void PushBytes(byte[] data) {
+            Push(data.Length, data);
             PushInt(data.Length);
         }
 
-        public byte[] PopBytes(int size) => Pop(size);
+        byte[] PopBytes(int size) => Pop(size);
+        public byte[] PopBytes() => Pop(PopInt());
         public int PopInt() => Bytes.ToInt(Pop(sizeof(int)), 0);
         public float PopFloat() => Bytes.ToFloat(Pop(sizeof(float)), 0);
-        public string PopStr() => Bytes.ToStr(PopBytes(PopInt()));
+        public string PopStr() => Bytes.ToStr(PopBytes());
 
         void Push(int pushSize, byte[] data) {
             int size = Body.Length;
