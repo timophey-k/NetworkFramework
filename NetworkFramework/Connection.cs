@@ -175,17 +175,62 @@ namespace NetworkFramework {
             var ac = new AsyncCallback((ar) => {
                 var pack = (BuffPack)ar.AsyncState;
                 int bytesCount;
+                int targetCount = pack.Buf.Length;
                 try { bytesCount = pack.Socket.EndReceive(ar); }
                 catch { bytesCount = 0; }
-                if (bytesCount > 0) {
+
+                if (bytesCount == 0) {
+                    Disconnect();
+                }
+                else if (bytesCount == targetCount) {
                     _tempMsgIn.Body = pack.Buf;
                     AddToIncoming();
                 }
+                else if (bytesCount < targetCount) {
+                    _tempMsgIn.Body = new byte[0];
+                    AppendToTempBuffer(pack.Buf, bytesCount);
+                    ReadBodyContinue(targetCount - bytesCount);
+                }
                 else {
-                    Disconnect();
+                    // WTF
                 }
             });
             _socket.BeginReceive(st.Buf, 0, st.Buf.Length, SocketFlags.None, ac, st);
+        }
+
+        void ReadBodyContinue(int size) {
+            var buf = new byte[size];
+            var st = new BuffPack(_socket, buf);
+            var ac = new AsyncCallback((ar) => {
+                var pack = (BuffPack)ar.AsyncState;
+                int bytesCount;
+                int targetCount = pack.Buf.Length;
+                try { bytesCount = pack.Socket.EndReceive(ar); }
+                catch { bytesCount = 0; }
+
+                if (bytesCount == 0) {
+                    Disconnect();
+                }
+                else {
+                    AppendToTempBuffer(pack.Buf, bytesCount);
+                    if (bytesCount == targetCount) {
+                        AddToIncoming();
+                    }
+                    else if (bytesCount < targetCount) {
+                        ReadBodyContinue(targetCount - bytesCount);
+                    }
+                    else {
+                        // WTF
+                    }
+                }
+            });
+            _socket.BeginReceive(st.Buf, 0, st.Buf.Length, SocketFlags.None, ac, st);
+        }
+
+        void AppendToTempBuffer(byte[] data, int appendSize) {
+            int insertAt = _tempMsgIn.Body.Length;
+            Array.Resize(ref _tempMsgIn.Body, _tempMsgIn.Body.Length + appendSize);
+            Array.Copy(data, 0, _tempMsgIn.Body, insertAt, appendSize);
         }
 
         void AddToIncoming() {
