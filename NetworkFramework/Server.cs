@@ -110,8 +110,7 @@ namespace NetworkFramework {
         public void Update(bool wait = false) {
             if (wait)
                 _messagesIn.Wait();
-            while (!_messagesIn.IsEmpty()) {
-                var msg = _messagesIn.PopFront();
+            while (_messagesIn.TryPopFront(out var msg)) {
                 OnMessage(msg);
             }
             _messagesIn.Trim();

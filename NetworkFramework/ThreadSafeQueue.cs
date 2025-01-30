@@ -42,6 +42,18 @@ namespace NetworkFramework {
             lock (qlocker) return queue.Dequeue();
         }
 
+        public bool TryPopFront(out T resut)
+        {
+            resut = default;
+            lock (qlocker)
+            {
+                if (IsEmpty())
+                    return false;
+                resut = PopFront();
+                return true;
+            }
+        }
+
         public void Wait() {
             while (IsEmpty()) {
                 notifier.WaitOne();
